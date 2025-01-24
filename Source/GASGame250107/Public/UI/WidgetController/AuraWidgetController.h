@@ -37,6 +37,7 @@ class GASGAME250107_API UAuraWidgetController : public UObject
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetWidgetControllerParams(const FWidgetControllerParams& WidgetControllerParams);
+	UFUNCTION(BlueprintCallable)
 	virtual void BroadcastInitValues();
 	virtual void BindCallbacksToDependencies();
 protected:
