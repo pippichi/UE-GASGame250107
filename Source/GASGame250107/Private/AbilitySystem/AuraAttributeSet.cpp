@@ -88,19 +88,22 @@ void UAuraAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribu
 void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
+	
+	FEffectProperties EffectProperties;
+	SetEffectProperties(Data, EffectProperties);
+	
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("Magnitude: %f"), Data.EvaluatedData.Magnitude);
 		// GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Red, FString::Printf(TEXT("Health:%f"), GetHealth()));
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+		UE_LOG(LogTemp, Warning, TEXT("Changed Health on %s, Health:%f"), *EffectProperties.TargetAvatarActor->GetName(), GetHealth());
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
 		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
 	}
 
-	FEffectProperties EffectProperties;
-	SetEffectProperties(Data, EffectProperties);
 }
 
 void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& EffectProperties)

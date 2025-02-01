@@ -8,6 +8,7 @@
 #include "Interaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
+class UGameplayAbility;
 class UGameplayEffect;
 class UAbilitySystemComponent;
 class UAttributeSet;
@@ -30,6 +31,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
 
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName WeaponTipSocketName;
+
+	virtual FVector GetCombatSocketLocation() override;
+	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComp;
 
@@ -51,4 +57,10 @@ protected:
 	void ApplyEffectToSelf(const TSubclassOf<UGameplayEffect>& GameplayEffects, const float Level) const;
 
 	void InitDefaultAttributes() const;
+
+	void AddCharacterAbilities();
+private:
+
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 };
