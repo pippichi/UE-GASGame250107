@@ -14,6 +14,7 @@ class IEnemyInterface;
 class UInputAction;
 struct FInputActionValue;
 class UInputMappingContext;
+class UDamageTextComponent;
 
 
 /**
@@ -27,6 +28,9 @@ class GASGAME250107_API AAuraPlayerController : public APlayerController
 public:
 	AAuraPlayerController();
 	virtual void PlayerTick(float DeltaTime) override;
+
+	UFUNCTION(Client, Reliable)
+	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter);
 
 protected:
 	virtual void BeginPlay() override;
@@ -81,4 +85,7 @@ private:
 	TObjectPtr<USplineComponent> Spline;
 
 	void AutoRun();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UDamageTextComponent> DamageTextCompClass;
 };

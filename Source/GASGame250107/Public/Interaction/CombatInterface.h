@@ -24,8 +24,13 @@ class GASGAME250107_API ICombatInterface
 public:
 	virtual int32 GetPlayerLevel();
 
-	virtual  FVector GetCombatSocketLocation();
+	virtual FVector GetCombatSocketLocation();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void UpdateFacingTarget(const FVector& Target);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable) // 使用BlueprintNativeEvent的好处在于：不用像BlueprintImplementableEvent一样必须在蓝图实现，他必须在c++中实现，并且也不需要标记为virtual
+	UAnimMontage* GetHitReactMontage();
+
+	virtual void Die() = 0;
 };

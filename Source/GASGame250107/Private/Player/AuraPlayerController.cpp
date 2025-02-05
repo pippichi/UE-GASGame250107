@@ -9,10 +9,13 @@
 #include "GameplayTagContainer.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
+#include "GameFramework\Character.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
+#include "UI\Widget\DamageTextComponent.h"
+//#include "GASGame250107\GASGame250107.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -25,6 +28,18 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	Super::PlayerTick(DeltaTime);
 	CursorTrace();
 	AutoRun();
+}
+
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter)
+{
+	//LogOnScreen(this, FString::Printf(TEXT("Client or Server:%s"), HasAuthority() ? TEXT("true") : TEXT("false")));
+	if (IsValid(TargetCharacter) && DamageTextCompClass && IsLocalController()) {
+		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextCompClass);
+		DamageText->RegisterComponent(); // 通常会在构造函数中使用CreateDefaultSubobject函数创建Component，UE会自动做挂载（类似于这里的RegisterComponent()函数）。但由于不是在构造函数，在这里相当于是动态创建了Component，因此我们要使用NewObject并且使用RegisterComponent()函数手动挂载Component
+		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		DamageText->SetDamageText(DamageAmount);
+		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform); // KeepWorldTransform目的是让widget解绑之后在原地播放动画
+	}
 }
 
 void AAuraPlayerController::AutoRun()
