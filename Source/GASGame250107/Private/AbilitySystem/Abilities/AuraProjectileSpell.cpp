@@ -31,7 +31,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		{
 			const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
 			FRotator Rotation = FRotationMatrix::MakeFromX(ProjectileTargetLocation - SocketLocation).Rotator();
-			Rotation.Pitch = 0.f;
+			//Rotation.Pitch = 0.f; 不知道是什么原因，Dedicated Server模式下，Client端发射的火球高度比较高，去掉这段代码就正常了
 			
 			FTransform SpawnTransform;
 			SpawnTransform.SetLocation(SocketLocation);
@@ -57,16 +57,16 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 			
 			
 			const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
+			const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
 			// 法一：const float ScaledDamage = Damage.AsInteger(GetAbilityLevel());
 			// 法二：const float ScaledDamage = Damage.EvaluateCurveAtLevel();
-			// 法三：
-			const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-			//GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("FireBolt Damage:%f"), ScaledDamage));
-			const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
-			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, ScaledDamage); // SetByCaller本质上是一个键值对，key为GameplayTags.Damage，value为ScaledDamage
-			
-			Projectile->DamageEffectSpecHandle = SpecHandle;
+			// 法三：const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+			for (auto& Pair : DamageTypes) {
+				const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
+				UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Pair.Key, ScaledDamage); // SetByCaller本质上是一个键值对，key为Pair.Key，value为ScaledDamage
+			}
 
+			Projectile->DamageEffectSpecHandle = SpecHandle;
 			Projectile->FinishSpawning(SpawnTransform);
 		}
 		

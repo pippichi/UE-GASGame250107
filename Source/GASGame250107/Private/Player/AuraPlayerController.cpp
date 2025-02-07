@@ -30,14 +30,13 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	AutoRun();
 }
 
-void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter)
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter, bool bBlockHit, bool bCriticalHit)
 {
-	//LogOnScreen(this, FString::Printf(TEXT("Client or Server:%s"), HasAuthority() ? TEXT("true") : TEXT("false")));
-	if (IsValid(TargetCharacter) && DamageTextCompClass && IsLocalController()) {
+	if (IsValid(TargetCharacter) && DamageTextCompClass && IsLocalController()) { // 本来预计如果不加IsLocalController()，那么Server端也能看到攻击信息；加上之后只有Client端能看到。结果实际测试加跟不加是一样的。
 		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextCompClass);
 		DamageText->RegisterComponent(); // 通常会在构造函数中使用CreateDefaultSubobject函数创建Component，UE会自动做挂载（类似于这里的RegisterComponent()函数）。但由于不是在构造函数，在这里相当于是动态创建了Component，因此我们要使用NewObject并且使用RegisterComponent()函数手动挂载Component
 		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		DamageText->SetDamageText(DamageAmount);
+		DamageText->SetDamageText(DamageAmount, bBlockHit, bCriticalHit);
 		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform); // KeepWorldTransform目的是让widget解绑之后在原地播放动画
 	}
 }

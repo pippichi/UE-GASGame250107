@@ -11,6 +11,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "GASGame250107/GASGame250107.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework\Character.h"
 
 // Sets default values
 AAuraProjectile::AAuraProjectile()
@@ -52,7 +53,7 @@ void AAuraProjectile::Destroyed()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-		LoopingSoundComponent->Stop();
+		if (LoopingSoundComponent) LoopingSoundComponent->Stop();
 	}
 	Super::Destroyed();
 }
@@ -60,9 +61,26 @@ void AAuraProjectile::Destroyed()
 void AAuraProjectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-	LoopingSoundComponent->Stop();
+	if (DamageEffectSpecHandle.IsValid() && DamageEffectSpecHandle.Data.IsValid() && // 服务器才执行UAuraProjectileSpell::SpawnProjectile方法，所以Client端需要DamageEffectSpecHandle.IsValid()以及DamageEffectSpecHandle.Data.IsValid()（TODO: 教程中只写了DamageEffectSpecHandle.Data.IsValid()）
+		DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor) {
+		return;
+	}
+
+	// Client端不检测Simulated角色
+	if (GetLocalRole() == ENetRole::ROLE_SimulatedProxy) {
+		return;
+	}
+	// Client端检测OtherActor是否是自己，如果是自己则return
+	if (!DamageEffectSpecHandle.IsValid() && !DamageEffectSpecHandle.Data.IsValid()&&
+		Cast<AActor>(UGameplayStatics::GetPlayerCharacter(this, 0)) == OtherActor) {
+		return;
+	}
+
+	if (!bHit) { // Server端执行之后会复制给Client端执行，而有可能此时Client端自己已经执行了，所以需要避免这种情况
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
+		if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+	}
 
 	if (HasAuthority())
 	{

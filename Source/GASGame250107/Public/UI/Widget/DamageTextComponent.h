@@ -17,5 +17,5 @@ class GASGAME250107_API UDamageTextComponent : public UWidgetComponent
 public:
 	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetDamageText(float Damage);
+	void SetDamageText(float Damage, bool bBlockHit, bool bCriticalHit);
 };
