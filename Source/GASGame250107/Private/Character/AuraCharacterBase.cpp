@@ -7,6 +7,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GASGame250107/GASGame250107.h"
+#include "AuraGameplayTags.h"
 
 // Sets default values
 AAuraCharacterBase::AAuraCharacterBase()
@@ -54,6 +55,7 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Dissolve();
+	bDead = true;
 }
 
 // Called when the game starts or when spawned
@@ -62,10 +64,35 @@ void AAuraCharacterBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-FVector AAuraCharacterBase::GetCombatSocketLocation()
+FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) // TODO: 20250209无法解决Client端网络同步问题
 {
-	check(Weapon);
-	return Weapon->GetSocketLocation(WeaponTipSocketName);
+	// 这里因为只有三种情况，所以直接用ifelse了，复杂情况下可以用DataTable
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_Weapon) && IsValid(Weapon)) {
+		return Weapon->GetSocketLocation(WeaponTipSocketName);
+	}
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_LeftHand)) {
+		return GetMesh()->GetSocketLocation(LeftHandSocketName);
+	}
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_RightHand)) {
+		return GetMesh()->GetSocketLocation(RightHandSocketName);
+	}
+	return FVector();
+}
+
+bool AAuraCharacterBase::IsDead_Implementation() const
+{
+	return bDead;
+}
+
+AActor* AAuraCharacterBase::GetAvatar_Implementation()
+{
+	return this;
+}
+
+TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontages_Implementation()
+{
+	return AttackMontages;
 }
 
 void AAuraCharacterBase::InitAbilityActorInfo()

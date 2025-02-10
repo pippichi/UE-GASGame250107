@@ -62,6 +62,13 @@ public:
 
  FGameplayTag Effects_HitReact;
  
+ FGameplayTag Abilities_Attack;
+
+ FGameplayTag CombatSocket_Weapon;
+ FGameplayTag CombatSocket_RightHand;
+ FGameplayTag CombatSocket_LeftHand;
+ FGameplayTag CombatSocket_Tail;
+
  static FAuraGameplayTags GameplayTags;
  static void InitNativeGameplayTags();
  

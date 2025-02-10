@@ -27,9 +27,9 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();
 	if (bIsServer)
 	{
-		if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(GetAvatarActorFromActorInfo()))
+		if (GetAvatarActorFromActorInfo()->Implements<UCombatInterface>())
 		{
-			const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
+			const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), FAuraGameplayTags::Get().CombatSocket_Weapon);
 			FRotator Rotation = FRotationMatrix::MakeFromX(ProjectileTargetLocation - SocketLocation).Rotator();
 			//Rotation.Pitch = 0.f; 不知道是什么原因，Dedicated Server模式下，Client端发射的火球高度比较高，去掉这段代码就正常了
 			

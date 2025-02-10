@@ -179,4 +179,43 @@ void FAuraGameplayTags::InitNativeGameplayTags()
 	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Lightning, GameplayTags.Attributes_Resistance_Lightning);
 	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Physical, GameplayTags.Attributes_Resistance_Physical);
 	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Fire, GameplayTags.Attributes_Resistance_Fire);
+
+	/*
+	 * Abilities
+	 */
+	GameplayTags.Abilities_Attack = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Attack"),
+		FString("Attack Ability Tag")
+	);
+
+	/*
+	 * Montage
+	 */
+	GameplayTags.Abilities_Attack = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Attack"),
+		FString("Attack Ability Tag")
+	);
+
+	/*
+	 * Combat Sockets
+	 */
+	GameplayTags.CombatSocket_Weapon = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("CombatSocket.Weapon"),
+		FString("Weapon")
+	);
+
+	GameplayTags.CombatSocket_RightHand = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("CombatSocket.RightHand"),
+		FString("Right Hand")
+	);
+
+	GameplayTags.CombatSocket_LeftHand = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("CombatSocket.LeftHand"),
+		FString("Left Hand")
+	);
+
+	GameplayTags.CombatSocket_Tail = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("CombatSocket.Tail"),
+		FString("Tail")
+	);
 }

@@ -183,6 +183,10 @@ void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float D
 		// 正确的写法：
 		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller)) { // Props.SourceCharacter->Controller获取到Client在Server端正确的Controller
 			PC->ShowDamageNumber(Damage, Props.TargetCharacter, bBlockHit, bCriticalHit);
+			return;
+		}
+		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.TargetCharacter->Controller)) { // AI没有AAuraPlayerController，所以直接拿玩家的AAuraPlayerController。思考：这个函数是不是不该写在AAuraPlayerController里面？
+			PC->ShowDamageNumber(Damage, Props.TargetCharacter, bBlockHit, bCriticalHit);
 		}
 	}
 }

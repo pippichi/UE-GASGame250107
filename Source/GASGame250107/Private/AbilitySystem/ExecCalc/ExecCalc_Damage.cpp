@@ -120,14 +120,14 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	// 上述两个案例的结合
 	float Damage = 0.f;
 	for (const auto& Pair : FAuraGameplayTags::Get().DamageTypesToResistances) {
-		const FGameplayTag DamageTpyeTag = Pair.Key;
+		const FGameplayTag DamageTypeTag = Pair.Key;
 		const FGameplayTag ResistanceTag = Pair.Value;
 		AuraDamageStatics ADS = AuraDamageStatics();
 		checkf(ADS.TagsToCaptureDefs.Contains(ResistanceTag), TEXT("TagsToCaptureDefs does not contain Tag:[%s] in ExecClac_Damage"), *ResistanceTag.ToString());
 
 		const FGameplayEffectAttributeCaptureDefinition ResistanceCaptureDef = ADS.TagsToCaptureDefs[ResistanceTag];
 
-		float DamageTypeValue = Spec.GetSetByCallerMagnitude(DamageTpyeTag);
+		float DamageTypeValue = Spec.GetSetByCallerMagnitude(DamageTypeTag);
 
 		float Resistance = 0.f;
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(ResistanceCaptureDef, EvaluationParameters, Resistance);

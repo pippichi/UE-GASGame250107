@@ -66,7 +66,18 @@ int32 AAuraEnemy::GetPlayerLevel()
 void AAuraEnemy::Die()
 {
 	SetLifeSpan(LifeSpan);
+	if (AuraAIController) AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"), true);
 	Super::Die();
+}
+
+void AAuraEnemy::SetCombatTarget_Implementation(AActor* InCombatTarget)
+{
+	CombatTarget = InCombatTarget;
+}
+
+AActor* AAuraEnemy::GetCombatTarget_Implementation() const
+{
+	return CombatTarget;
 }
 
 void AAuraEnemy::BeginPlay()
@@ -75,7 +86,7 @@ void AAuraEnemy::BeginPlay()
 	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
 	InitAbilityActorInfo();
 	if (HasAuthority()) {
-		UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComp);
+		UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComp, CharacterClass);
 	}
 
 	if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
@@ -108,7 +119,7 @@ void AAuraEnemy::HitReactTagChange(const FGameplayTag GameplayTag, int32 NewCoun
 {
 	bHitReact = NewCount > 0;
 	GetCharacterMovement()->MaxWalkSpeed = bHitReact ? 0.f : BaseWalkSpeed;
-	if (AuraAIController && AuraAIController->GetBlackboardComponent()) {
+	if (AuraAIController && AuraAIController->GetBlackboardComponent()) { // AuraAIController只在Server有效，在Client可能为nullptr
 		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReact);
 	}
 }
