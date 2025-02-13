@@ -22,17 +22,19 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 }
 
-void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation)
+void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation, const FGameplayTag& SocketTag, bool bOverridePitch, float PitchOverride)
 {
 	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();
 	if (bIsServer)
 	{
 		if (GetAvatarActorFromActorInfo()->Implements<UCombatInterface>())
 		{
-			const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), FAuraGameplayTags::Get().CombatSocket_Weapon);
+			const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), SocketTag);
 			FRotator Rotation = FRotationMatrix::MakeFromX(ProjectileTargetLocation - SocketLocation).Rotator();
 			//Rotation.Pitch = 0.f; 不知道是什么原因，Dedicated Server模式下，Client端发射的火球高度比较高，去掉这段代码就正常了
-			
+			if (bOverridePitch) {
+				Rotation.Pitch = PitchOverride;
+			}
 			FTransform SpawnTransform;
 			SpawnTransform.SetLocation(SocketLocation);
 			SpawnTransform.SetRotation(Rotation.Quaternion());

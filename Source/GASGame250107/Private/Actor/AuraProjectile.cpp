@@ -55,6 +55,7 @@ void AAuraProjectile::Destroyed()
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
 		if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+		bHit = true;
 	}
 	Super::Destroyed();
 }
@@ -62,7 +63,7 @@ void AAuraProjectile::Destroyed()
 void AAuraProjectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (DamageEffectSpecHandle.IsValid() && DamageEffectSpecHandle.Data.IsValid() && // 服务器才执行UAuraProjectileSpell::SpawnProjectile方法，所以Client端需要DamageEffectSpecHandle.IsValid()以及DamageEffectSpecHandle.Data.IsValid()（TODO: 教程中只写了DamageEffectSpecHandle.Data.IsValid()）
+	if (!DamageEffectSpecHandle.IsValid() || !DamageEffectSpecHandle.Data.IsValid() || // 服务器才执行UAuraProjectileSpell::SpawnProjectile方法，所以Client端需要DamageEffectSpecHandle.IsValid()以及DamageEffectSpecHandle.Data.IsValid()（TODO: 教程中只写了DamageEffectSpecHandle.Data.IsValid()）
 		DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor) {
 		return;
 	}
@@ -82,9 +83,11 @@ void AAuraProjectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	}
 
 	if (!bHit) { // Server端执行之后会复制给Client端执行，而有可能此时Client端自己已经执行了，所以需要避免这种情况
+		//UE_LOG(LogTemp, Warning, TEXT("[%s] spawned"), *GetName());
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
 		if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+		bHit = true;
 	}
 
 	if (HasAuthority())
