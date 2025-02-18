@@ -5,6 +5,8 @@
 
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
+#include "GASGame250107\AuraLogChannels.h"
+//#include "GASGame250107\GASGame250107.h"
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 {
@@ -25,6 +27,18 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 			GiveAbility(AbilitySpec);
 		} 
 		// GiveAbilityAndActivateOnce(AbilitySpec);
+	}
+	bStartupAbilitiesGiven = true;
+	AbilitiesGivenDelegate.Broadcast(this);
+}
+
+void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
+{
+	Super::OnRep_ActivateAbilities();
+	//PrintAuth(this, GetAvatarActor()->HasAuthority());
+	if (!bStartupAbilitiesGiven) { // ÔÚClient¶ËÖ´ÐÐ¹ã²¥
+		AbilitiesGivenDelegate.Broadcast(this);
+		bStartupAbilitiesGiven = true;
 	}
 }
 
@@ -58,6 +72,48 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 			}
 		}
 	}
+}
+
+void UAuraAbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate)
+{
+	FScopedAbilityListLock AbilityListLock(*this); // Ëø
+	for (const auto& AbilitySpec : GetActivatableAbilities()) {
+		if (!Delegate.ExecuteIfBound(AbilitySpec)) {
+			UE_LOG(LogAura, Error, TEXT("Failed to execute delegate in %hs"), __FUNCTION__);
+		}
+	}
+}
+
+void UAuraAbilitySystemComponent::ForEachAbility1(std::function<bool(const FGameplayAbilitySpec&)> Delegate)
+{
+	FScopedAbilityListLock AbilityListLock(*this); // Ëø
+	for (const auto& AbilitySpec : GetActivatableAbilities()) {
+		if (!Delegate(AbilitySpec)) {
+			UE_LOG(LogAura, Error, TEXT("Failed to execute delegate in %hs"), __FUNCTION__);
+		}
+	}
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	if (AbilitySpec.Ability) {
+		for (const auto& Tag : AbilitySpec.Ability.Get()->AbilityTags) {
+			if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities")))) {
+				return Tag;
+			}
+		}
+	}
+	return FGameplayTag();
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	for (const auto& Tag : AbilitySpec.GetDynamicSpecSourceTags()) {
+		if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("InputTag")))) {
+			return Tag;
+		}
+	}
+	return FGameplayTag();
 }
 
 void UAuraAbilitySystemComponent::ClientEffectApplied_Implementation(UAbilitySystemComponent* AbilitySystemComponent,

@@ -22,3 +22,7 @@ static void LogOnScreen(UObject* WorldContext, FString Msg, FColor Color = FColo
 		GEngine->AddOnScreenDebugMessage(-1, Duration, Color, NetPrefix + Msg);
 	}
 }
+
+static void PrintAuth(UObject* WorldContext, bool bHasAuthority) {
+	LogOnScreen(WorldContext, bHasAuthority ? FString("S") : FString("C"), FColor::Cyan);
+}
