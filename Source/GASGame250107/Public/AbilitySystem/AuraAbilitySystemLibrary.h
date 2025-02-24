@@ -11,6 +11,9 @@
 class UAttributeMenuWidgetController;
 class UAbilitySystemComponent;
 class UOverlayWidgetController;
+class USpellMenuWidgetController;
+class UAbilityInfo;
+struct FWidgetControllerParams;
 
 /**
  * 
@@ -22,11 +25,17 @@ class GASGAME250107_API UAuraAbilitySystemLibrary : public UBlueprintFunctionLib
 
 public:
 
-	UFUNCTION(BlueprintPure, Category = "AuraAttributeSystemLibrary|WidgetController")
+	UFUNCTION(BlueprintPure, Category = "AuraAttributeSystemLibrary|WidgetController", meta = (DefaultToSelf = "WorldContextObj"))
+	static bool MakeWidgetControllerParams(const UObject* WorldContextObj, FWidgetControllerParams& OutWCParams, AAuraHUD*& OutAuraHUD);
+
+	UFUNCTION(BlueprintPure, Category = "AuraAttributeSystemLibrary|WidgetController", meta = (DefaultToSelf = "WorldContextObj"))
 	static UOverlayWidgetController* GetOverLayWidgetController(const UObject* WorldContextObj);
 
-	UFUNCTION(BlueprintPure, Category = "AuraAttributeSystemLibrary|WidgetController")
+	UFUNCTION(BlueprintPure, Category = "AuraAttributeSystemLibrary|WidgetController", meta = (DefaultToSelf = "WorldContextObj"))
 	static UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const UObject* WorldContextObj);
+
+	UFUNCTION(BlueprintPure, Category = "AuraAttributeSystemLibrary|WidgetController", meta = (DefaultToSelf = "WorldContextObj"))
+	static USpellMenuWidgetController* GetSpellMenuWidgetController(const UObject* WorldContextObj);
 
 	UFUNCTION(BlueprintCallable, Category = "AuraAttributeSystemLibrary|CharacterClassDefaults")
 	static void InitDefaultAttributes(const UObject* WorldContextObj, ECharacterClass CharacterClass, float Level, UAbilitySystemComponent* ASC);
@@ -36,6 +45,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "AuraAttributeSystemLibrary|CharacterClassDefaults")
 	static UCharacterClassInfo* GetCharacterClassInfo(const UObject* WorldContextObj);
+
+	UFUNCTION(BlueprintCallable, Category = "AuraAttributeSystemLibrary|CharacterClassDefaults")
+	static UAbilityInfo* GetAbilityInfo(const UObject* WorldContextObj);
 
 	/*
 	 * Effect Context Getters

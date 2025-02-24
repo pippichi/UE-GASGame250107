@@ -6,19 +6,19 @@
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AttributeInfo.h"
+#include "Player\AuraPlayerState.h"
+#include "AbilitySystem\AuraAbilitySystemComponent.h"
 
 void UAttributeMenuWidgetController::BroadcastInitValues()
 {
 	Super::BroadcastInitValues();
-
-	UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
 	
 	check(AttributeInfo);
 
 	// FAuraAttributeInfo Info = AttributeInfo->FindAttributeInfoForTag(FAuraGameplayTags::Get().Attributes_Primary_Strength);
 	// Info.AttributeValue = AS->GetStrength();
 	// AttributeInfoSignature.Broadcast(Info);
-	for (auto& MapPair: AS->TagToAttributes)
+	for (auto& MapPair: GetAuraAS()->TagToAttributes)
 	{
 		BroadcastAttributeInfo(MapPair.Key, MapPair.Value());
 		// FAuraAttributeInfo Info = AttributeInfo->FindAttributeInfoForTag(MapPair.Key);
@@ -26,14 +26,16 @@ void UAttributeMenuWidgetController::BroadcastInitValues()
 		// Info.AttributeValue = MapPair.Value().GetNumericValue(AS);
 		// AttributeInfoSignature.Broadcast(Info);
 	}
+
+	AttributePointsChangedDelegate.Broadcast(GetAuraPS()->GetAttributePoints());
+
 }
 
 void UAttributeMenuWidgetController::BindCallbacksToDependencies()
 {
 	Super::BindCallbacksToDependencies();
-	UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
 	check(AttributeInfo);
-	for (auto& MapPair: AS->TagToAttributes)
+	for (auto& MapPair: GetAuraAS()->TagToAttributes)
 	{
 		AbilitySystemComp->GetGameplayAttributeValueChangeDelegate(MapPair.Value()).AddLambda(
 			[this, MapPair](const FOnAttributeChangeData& Data) // 这里为什么使用值捕获而不是引用捕获？因为这是回调函数，真正触发的时候MapPair、AS可能为NULL
@@ -42,6 +44,14 @@ void UAttributeMenuWidgetController::BindCallbacksToDependencies()
 			}
 		);
 	}
+	GetAuraPS()->OnAttributePointsChangedDelegate.AddLambda([this](int32 Points) {
+		AttributePointsChangedDelegate.Broadcast(Points);
+		});
+}
+
+void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag)
+{
+	GetAuraASC()->UpgradeAttribute(AttributeTag);
 }
 
 void UAttributeMenuWidgetController::BroadcastAttributeInfo(const FGameplayTag& GameplayTag, const FGameplayAttribute& GameplayAttribute) const

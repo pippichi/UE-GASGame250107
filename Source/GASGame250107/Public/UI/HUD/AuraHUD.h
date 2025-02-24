@@ -12,6 +12,7 @@ class UAttributeSet;
 class UOverlayWidgetController;
 class UAuraUserWidget;
 struct FWidgetControllerParams;
+class USpellMenuWidgetController;
 
 /**
  * 
@@ -23,8 +24,8 @@ class GASGAME250107_API AAuraHUD : public AHUD
 public:
 	
 	UOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
-
 	UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const FWidgetControllerParams& WCParams);
+	USpellMenuWidgetController* GetSpellMenuWidgetController(const FWidgetControllerParams& WCParams);
 	
 	void InitOverlay(APlayerController* PlayerController, APlayerState* PlayerState, UAbilitySystemComponent* AbilitySystemComp, UAttributeSet* AttributeSet);
 
@@ -47,5 +48,11 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UAttributeMenuWidgetController> AttributeMenuWidgetControllerClass;
+
+	UPROPERTY()
+	TObjectPtr<USpellMenuWidgetController> SpellMenuWidgetController;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<USpellMenuWidgetController> SpellMenuWidgetControllerClass;
 
 };
