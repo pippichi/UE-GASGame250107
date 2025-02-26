@@ -176,6 +176,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 	AbilitySystemComp = AuraPlayerState->GetAbilitySystemComponent();
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComp)->AbilityActorInfoSet();
 	AttributeSet = AuraPlayerState->GetAttributeSet();
+	OnAscRegistered.Broadcast(AbilitySystemComp);
 
 	/**
 	 * 之所以要下面的if判断是因为多人模式下，SIMULATED角色获取不到

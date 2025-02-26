@@ -45,30 +45,35 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 				GetOwningActorFromActorInfo(),
 				Cast<APawn>(GetOwningActorFromActorInfo()),
 				ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-			// Give the Projectile a Gameplay Effect Spec for causing Damage
-			const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
-			FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
-			EffectContextHandle.SetAbility(this);
-			EffectContextHandle.AddSourceObject(Projectile);
-			TArray<TWeakObjectPtr<AActor>> Actors; // 由于EffectContextHandle是局部变量，所以他其实是随着主体消亡而消亡的，因此他里面的成员变量不应该影响到GC（类似于一个观测者的身份），因此变量类型是TWeakObjectPtr
-			Actors.Add(Projectile);
-			EffectContextHandle.AddActors(Actors);
-			FHitResult HitResult;
-			HitResult.Location = ProjectileTargetLocation;
-			EffectContextHandle.AddHitResult(HitResult);
 			
-			
-			const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
-			const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
-			// 法一：const float ScaledDamage = Damage.AsInteger(GetAbilityLevel());
-			// 法二：const float ScaledDamage = Damage.EvaluateCurveAtLevel();
-			// 法三：const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-			for (auto& Pair : DamageTypes) {
-				const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
-				UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Pair.Key, ScaledDamage); // SetByCaller本质上是一个键值对，key为Pair.Key，value为ScaledDamage
-			}
+			//// Give the Projectile a Gameplay Effect Spec for causing Damage
+			//const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
+			//FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
+			//EffectContextHandle.SetAbility(this);
+			//EffectContextHandle.AddSourceObject(Projectile);
+			//TArray<TWeakObjectPtr<AActor>> Actors; // 由于EffectContextHandle是局部变量，所以他其实是随着主体消亡而消亡的，因此他里面的成员变量不应该影响到GC（类似于一个观测者的身份），因此变量类型是TWeakObjectPtr
+			//Actors.Add(Projectile);
+			//EffectContextHandle.AddActors(Actors);
+			//FHitResult HitResult;
+			//HitResult.Location = ProjectileTargetLocation;
+			//EffectContextHandle.AddHitResult(HitResult);
+			//
+			//const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
+			//const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+			//// 法一：const float ScaledDamage = Damage.AsInteger(GetAbilityLevel());
+			//// 法二：const float ScaledDamage = Damage.EvaluateCurveAtLevel();
+			//// 法三：const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+			////for (auto& Pair : DamageTypes) {
+			////	const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
+			////	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Pair.Key, ScaledDamage); // SetByCaller本质上是一个键值对，key为Pair.Key，value为ScaledDamage
+			////}
+			//const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+			//UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageType, ScaledDamage);
 
-			Projectile->DamageEffectSpecHandle = SpecHandle;
+			//Projectile->DamageEffectSpecHandle = SpecHandle;
+
+			Projectile->DamageEffectParams = MakeDamageEffectParamsFromClassDefaults();
+
 			Projectile->FinishSpawning(SpawnTransform);
 		}
 		
