@@ -47,6 +47,30 @@ struct FDamageEffectParams
 
 	UPROPERTY(BlueprintReadWrite)
 	float DeathImpulseMagnitude = 1000.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector DeathImpulse = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite)
+	float KnockbackForceMagnitude = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	float KnockbackChance = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector KnockbackForce = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsRadialDamage = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	float RadialDamageInnerRadius = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	float RadialDamageOuterRadius = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector RadialDamageOrigin = FVector::ZeroVector;
 };
 
 USTRUCT(BlueprintType)
@@ -63,6 +87,12 @@ public:
 	FORCEINLINE float GetDebuffDuration() const { return DebuffDuration; }
 	FORCEINLINE float GetDebuffFrequency() const { return DebuffFrequency; }
 	FORCEINLINE TSharedPtr<FGameplayTag> GetDamageType() const { return DamageType; }
+	FORCEINLINE FVector GetDeathImpulse() const { return DeathImpulse; }
+	FORCEINLINE FVector GetKnockbackForce() const { return KnockbackForce; }
+	FORCEINLINE bool IsRadialDamage() const { return bIsRadialDamage; }
+	FORCEINLINE float GetRadialDamageInnerRadius() const { return RadialDamageInnerRadius; }
+	FORCEINLINE float GetRadialDamageOuterRadius() const { return RadialDamageOuterRadius; }
+	FORCEINLINE FVector GetRadialDamageOrigin() const { return RadialDamageOrigin; }
 
 	FORCEINLINE void SetIsCriticalHit(bool bInIsCriticalHit) { bIsCriticalHit = bInIsCriticalHit; }
 	FORCEINLINE void SetIsBlockedHit(bool bInIsBlockedHit) { bIsBlockedHit = bInIsBlockedHit; }
@@ -71,6 +101,12 @@ public:
 	FORCEINLINE void SetDebuffDuration(float InDuration) { DebuffDuration = InDuration; }
 	FORCEINLINE void SetDebuffFrequency(float InFrequency) { DebuffFrequency = InFrequency; }
 	FORCEINLINE void SetDamageType(TSharedPtr<FGameplayTag> InDamageType) { DamageType = InDamageType; }
+	FORCEINLINE void SetDeathImpulse(const FVector& InImpulse) { DeathImpulse = InImpulse; }
+	FORCEINLINE void SetKnockbackForce(const FVector& InForce) { KnockbackForce = InForce; }
+	FORCEINLINE void SetIsRadialDamage(bool bInIsRadialDamage) { bIsRadialDamage = bInIsRadialDamage; }
+	FORCEINLINE void SetRadialDamageInnerRadius(float InRadialDamageInnerRadius) { RadialDamageInnerRadius = InRadialDamageInnerRadius; }
+	FORCEINLINE void SetRadialDamageOuterRadius(float InRadialDamageOuterRadius) { RadialDamageOuterRadius = InRadialDamageOuterRadius; }
+	FORCEINLINE void SetRadialDamageOrigin(const FVector& InRadialDamageOrigin) { RadialDamageOrigin = InRadialDamageOrigin; }
 
 	/** Returns the actual struct used for serialization, subclasses must override this! */
 	FORCEINLINE virtual UScriptStruct* GetScriptStruct() const
@@ -132,6 +168,24 @@ protected:
 	float DebuffFrequency = 0.f;
 
 	TSharedPtr<FGameplayTag> DamageType; // TSharedPtr可以自己处理垃圾回收，不需要加UPROPERTY()
+
+	UPROPERTY()
+	FVector DeathImpulse = FVector::ZeroVector;
+
+	UPROPERTY()
+	FVector KnockbackForce = FVector::ZeroVector;
+
+	UPROPERTY()
+	bool bIsRadialDamage = false;
+
+	UPROPERTY()
+	float RadialDamageInnerRadius = 0.f;
+
+	UPROPERTY()
+	float RadialDamageOuterRadius = 0.f;
+
+	UPROPERTY()
+	FVector RadialDamageOrigin = FVector::ZeroVector;
 };
 
 template<>

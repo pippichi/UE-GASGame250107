@@ -29,7 +29,7 @@ public:
 
 	/** Combat Interface */
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
-	virtual void Die() override; // 只在Server执行
+	virtual void Die(const FVector& DeathImpulse) override; // 只在Server执行
 	virtual FOnDeathSignature& GetOnDeathDelegate() override;
 	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
 	virtual bool IsDead_Implementation() const override;
@@ -47,7 +47,7 @@ public:
 	FOnDeathSignature OnDeathDelegate;
 
 	UFUNCTION(NetMulticast, Reliable)
-	virtual void MulticastHandleDeath(); // 在Server和所有Client执行
+	virtual void MulticastHandleDeath(const FVector& DeathImpulse); // 在Server和所有Client执行
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<FTaggedMontage> AttackMontages;

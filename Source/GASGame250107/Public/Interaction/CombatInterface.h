@@ -61,7 +61,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable) // 使用BlueprintNativeEvent的好处在于：不用像BlueprintImplementableEvent一样必须在蓝图实现，他必须在c++中实现，并且也不需要标记为virtual
 	UAnimMontage* GetHitReactMontage();
 
-	virtual void Die() = 0;
+	virtual void Die(const FVector& DeathImpulse) = 0;
 	virtual FOnDeathSignature& GetOnDeathDelegate() = 0;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)

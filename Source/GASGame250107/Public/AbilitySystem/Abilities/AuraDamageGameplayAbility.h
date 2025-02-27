@@ -54,6 +54,21 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float DeathImpulseMagnitude = 1000.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	float KnockbackForceMagnitude = 1000.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	float KnockbackChance = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	bool bIsRadialDamage = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	float RadialDamageInnerRadius = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	float RadialDamageOuterRadius = 0.f;
+
 	UFUNCTION(BlueprintPure)
 	FTaggedMontage GetRandomTaggedMontageFromArray(const TArray<FTaggedMontage>& TaggedMontages) const;
 
