@@ -52,12 +52,19 @@ void AAuraProjectile::OnHit()
 {
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-	if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+	if (LoopingSoundComponent) {
+		LoopingSoundComponent->Stop();
+		LoopingSoundComponent->DestroyComponent(); // 立刻销毁，防止声音异常播放
+	}
 	bHit = true;
 }
 
 void AAuraProjectile::Destroyed()
 {
+	if (LoopingSoundComponent) {
+		LoopingSoundComponent->Stop();
+		LoopingSoundComponent->DestroyComponent(); // 立刻销毁，防止声音异常播放
+	}
 	if (!bHit && !HasAuthority()) // OnOverlap已经加了声音和特效生成，为什么在这里还要再加一遍？因为Client的OnOverlap和Server的Destroyed()次序不确定！有可能Server的Destroyed()已经同步过来了而Client的OnOverlap还未执行，那么此时就需要手动触发原先本该在OnOverlap中执行的逻辑了，不然Client端有可能还未触发该段逻辑就直接被Destroy了
 	{
 		OnHit();

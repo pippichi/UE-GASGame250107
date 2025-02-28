@@ -15,6 +15,7 @@ class UInputAction;
 struct FInputActionValue;
 class UInputMappingContext;
 class UDamageTextComponent;
+class UNiagaraSystem;
 
 
 /**
@@ -88,4 +89,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UDamageTextComponent> DamageTextCompClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UNiagaraSystem> ClickNiagaraSystem;
 };

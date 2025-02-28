@@ -5,6 +5,8 @@
 
 #include "Kismet\KismetSystemLibrary.h"
 #include "AbilitySystem\AuraAbilitySystemLibrary.h"
+#include "Actor\AuraProjectile.h"
+#include "GameFramework\ProjectileMovementComponent.h"
 
 FString UAuraFireBolt::GetDescription(int32 Level)
 {
@@ -116,43 +118,71 @@ void UAuraFireBolt::SpawnProjectiles(const FVector& ProjectileTargetLocation, co
 	const FVector LeftOfSpread = Forward.RotateAngleAxis(-ProjectileSpread / 2.f, FVector::UpVector);
 	const FVector RightOfSpread = Forward.RotateAngleAxis(ProjectileSpread / 2.f, FVector::UpVector);
 
-	//NumProjectiles = FMath::Min(NumProjectiles, GetAbilityLevel());
+	NumProjectiles = FMath::Min(NumProjectiles, GetAbilityLevel());
 
-	TArray<FVector> Directions = UAuraAbilitySystemLibrary::TEvenlyDirectors<FVector>(Forward, FVector::UpVector, ProjectileSpread, NumProjectiles);
 	TArray<FRotator> Rotators = UAuraAbilitySystemLibrary::TEvenlyDirectors<FRotator>(Forward, FVector::UpVector, ProjectileSpread, NumProjectiles);
 
-	for (const auto& Vector : Directions) {
-		const FVector Start = SocketLocation + FVector(0,0,5);
-		UKismetSystemLibrary::DrawDebugArrow(
-			GetAvatarActorFromActorInfo(),
-			Start,
-			Start + Vector * 75.f,
-			1,
-			FLinearColor::Blue,
-			120,
-			1
-		);
-	}
-	for (const auto& Rotator : Rotators) {
-		const FVector Start = SocketLocation + FVector(0, 0, 15);
-		UKismetSystemLibrary::DrawDebugArrow(
-			GetAvatarActorFromActorInfo(),
-			Start,
-			Start + Rotator.Vector() * 75.f,
-			1,
-			FLinearColor::Red,
-			120,
-			1
-		);
+	for (const FRotator& Rot : Rotators)
+	{
+		FTransform SpawnTransform;
+		SpawnTransform.SetLocation(SocketLocation);
+		SpawnTransform.SetRotation(Rot.Quaternion());
+
+		AAuraProjectile* Projectile = GetWorld()->SpawnActorDeferred<AAuraProjectile>(
+			ProjectileClass,
+			SpawnTransform,
+			GetOwningActorFromActorInfo(),
+			Cast<APawn>(GetOwningActorFromActorInfo()),
+			ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+		Projectile->DamageEffectParams = MakeDamageEffectParamsFromClassDefaults();
+
+		if (HomingTarget && HomingTarget->Implements<UCombatInterface>()) {
+			Projectile->ProjectileMovementComp->HomingTargetComponent = HomingTarget->GetRootComponent();
+		}
+		else {
+			Projectile->HomingTargetSceneComponent = NewObject<USceneComponent>(USceneComponent::StaticClass());
+			Projectile->HomingTargetSceneComponent->SetWorldLocation(ProjectileTargetLocation);
+			Projectile->ProjectileMovementComp->HomingTargetComponent = Projectile->HomingTargetSceneComponent;
+		}
+		Projectile->ProjectileMovementComp->bIsHomingProjectile = bLaunchHomingProjectiles;
+		Projectile->ProjectileMovementComp->HomingAccelerationMagnitude = FMath::FRandRange(HomingAccelerationMin, HomingAccelerationMax); // 用于设置弹道弧度
+
+		Projectile->FinishSpawning(SpawnTransform);
 	}
 
-	UKismetSystemLibrary::DrawDebugArrow(
-		GetAvatarActorFromActorInfo(),
-		SocketLocation,
-		SocketLocation + Forward * 75.f,
-		1,
-		FLinearColor::Gray,
-		120,
-		1
-	);
+	//for (const auto& Vector : Directions) {
+	//	const FVector Start = SocketLocation + FVector(0,0,5);
+	//	UKismetSystemLibrary::DrawDebugArrow(
+	//		GetAvatarActorFromActorInfo(),
+	//		Start,
+	//		Start + Vector * 75.f,
+	//		1,
+	//		FLinearColor::Blue,
+	//		120,
+	//		1
+	//	);
+	//}
+	//for (const auto& Rotator : Rotators) {
+	//	const FVector Start = SocketLocation + FVector(0, 0, 15);
+	//	UKismetSystemLibrary::DrawDebugArrow(
+	//		GetAvatarActorFromActorInfo(),
+	//		Start,
+	//		Start + Rotator.Vector() * 75.f,
+	//		1,
+	//		FLinearColor::Red,
+	//		120,
+	//		1
+	//	);
+	//}
+
+	//UKismetSystemLibrary::DrawDebugArrow(
+	//	GetAvatarActorFromActorInfo(),
+	//	SocketLocation,
+	//	SocketLocation + Forward * 75.f,
+	//	1,
+	//	FLinearColor::Gray,
+	//	120,
+	//	1
+	//);
 }

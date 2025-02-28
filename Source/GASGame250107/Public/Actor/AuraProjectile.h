@@ -29,6 +29,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true)) // ExposeOnSpawn=true意味着spawn时将该变量作为pin暴露出来
 	FDamageEffectParams DamageEffectParams;
 
+	UPROPERTY()
+	TObjectPtr<USceneComponent> HomingTargetSceneComponent;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

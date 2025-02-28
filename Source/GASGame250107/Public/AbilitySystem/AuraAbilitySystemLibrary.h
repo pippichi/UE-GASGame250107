@@ -148,6 +148,6 @@ public:
 	//static TArray<FVector> EvenlyRotatedVectors(const FVector& Forward, const FVector& Axis, float Spread, int32 NumVectors);
 	template<typename RotatorOrVector>
 	static TArray<RotatorOrVector> TEvenlyDirectors(const FVector& Forward, const FVector& Axis, float Spread, int32 NumDirectors);
-
+	
 	static int32 GetXPRewardForClassAndLevel(const UObject* WorldContextObj, ECharacterClass CharacterClass, int32 CharacterLevel);
 };
