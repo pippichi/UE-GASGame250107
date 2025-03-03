@@ -233,8 +233,7 @@ void UAuraAttributeSet::Debuff(const FEffectProperties& Props)
 	Effect->DurationMagnitude = FScalableFloat(DebuffDuration);
 
 	const FGameplayTag DebuffTag = GameplayTags.DamageTypesToDebuffs[DamageType];
-	Effect->InheritableOwnedTagsContainer.AddTag(DebuffTag);
-	//UTargetTagsGameplayEffectComponent TargetTagsGameplayEffectComponent;
+	//Effect->InheritableOwnedTagsContainer.AddTag(DebuffTag);
 	FInheritedTagContainer InheritedTagContainer;
 	InheritedTagContainer.AddTag(DebuffTag);
 	UTargetTagsGameplayEffectComponent& TargetTagsGameplayEffectComponent = Effect->AddComponent<UTargetTagsGameplayEffectComponent>();
