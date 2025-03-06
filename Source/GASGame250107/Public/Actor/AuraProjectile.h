@@ -59,7 +59,7 @@ private:
 	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundBase> ImpactSound;
-		
+	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundBase> LoopingSound;
 

@@ -188,10 +188,15 @@ void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 			if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
 			{
 				AbilitySpecInputPressed(AbilitySpec);
-				if (AbilitySpec.IsActive())
-				{
-					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
-				}
+				//UGameplayAbility* GameplayAbility = AbilitySpec.GetPrimaryInstance();
+				//if (GameplayAbility)
+				//{
+				//	// UE5.5以前可以这么写：
+				//	// InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+				//	// 经过自己实验测试发现新版本需要这样写：
+				//  // 并且使用WaitInputRelease或WaitInputPress函数的GA的Instancing Policy必须是Instanced Per Actor
+				//	InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, GameplayAbility->GetCurrentActivationInfo().GetActivationPredictionKey());
+				//}
 			}
 		}
 	}
@@ -209,6 +214,15 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 				if (!AbilitySpec.IsActive())
 				{
 					TryActivateAbility(AbilitySpec.Handle);
+					UGameplayAbility* GameplayAbility = AbilitySpec.GetPrimaryInstance();
+					if (GameplayAbility)
+					{
+						// UE5.5以前可以这么写：
+						// InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+						// 经过自己实验测试发现新版本需要这样写：
+						// 并且使用WaitInputRelease或WaitInputPress函数的GA的Instancing Policy必须是Instanced Per Actor
+						InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, GameplayAbility->GetCurrentActivationInfo().GetActivationPredictionKey());
+					}
 				}
 			}
 		}
@@ -224,7 +238,14 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 			if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag) && AbilitySpec.IsActive())
 			{
 				AbilitySpecInputReleased(AbilitySpec);
-				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+				UGameplayAbility* GameplayAbility = AbilitySpec.GetPrimaryInstance();
+				if (GameplayAbility) {
+					// UE5.5以前可以这么写：
+					// InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+					// 经过自己实验测试发现新版本需要这样写：
+					// 并且使用WaitInputRelease或WaitInputPress函数的GA的Instancing Policy必须是Instanced Per Actor
+					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle, GameplayAbility->GetCurrentActivationInfo().GetActivationPredictionKey());
+				}
 			}
 		}
 	}

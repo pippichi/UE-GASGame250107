@@ -151,9 +151,12 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& Props)
 			SendXPEvent(Props);
 		}
 		else {
-			FGameplayTagContainer TagContainer;
-			TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
-			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+			if (Props.TargetCharacter->Implements<UCombatInterface>() && !ICombatInterface::Execute_IsBeingShocked(Props.TargetCharacter))
+			{
+				FGameplayTagContainer TagContainer;
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+			}
 
 			const FVector& KnockbackForce = UAuraAbilitySystemLibrary::GetKnockbackForce(Props.EffectContextHandle);
 			if (!KnockbackForce.IsNearlyZero(1.f))
@@ -236,6 +239,14 @@ void UAuraAttributeSet::Debuff(const FEffectProperties& Props)
 	//Effect->InheritableOwnedTagsContainer.AddTag(DebuffTag);
 	FInheritedTagContainer InheritedTagContainer;
 	InheritedTagContainer.AddTag(DebuffTag);
+	if (DebuffTag.MatchesTagExact(GameplayTags.Debuff_Stun))
+	{
+		InheritedTagContainer.AddTag(GameplayTags.Player_Block_CursorTrace);
+		InheritedTagContainer.AddTag(GameplayTags.Player_Block_InputHeld);
+		InheritedTagContainer.AddTag(GameplayTags.Player_Block_InputPressed);
+		InheritedTagContainer.AddTag(GameplayTags.Player_Block_InputReleased);
+	}
+	// 这个操作只在Server执行，Client需要自行复制
 	UTargetTagsGameplayEffectComponent& TargetTagsGameplayEffectComponent = Effect->AddComponent<UTargetTagsGameplayEffectComponent>();
 	TargetTagsGameplayEffectComponent.SetAndApplyTargetTagChanges(InheritedTagContainer);
 

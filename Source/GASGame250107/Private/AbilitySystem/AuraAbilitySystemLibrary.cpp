@@ -379,6 +379,54 @@ void UAuraAbilitySystemLibrary::GetLivePlayerWithinRadius(const UObject* WorldCo
 	}
 }
 
+void UAuraAbilitySystemLibrary::GetClosestTargets(int32 MaxTargets, const TArray<AActor*>& Actors, TArray<AActor*>& OutClosestTargets, const FVector& Origin)
+{
+	if (Actors.Num() <= MaxTargets)
+	{
+		OutClosestTargets = Actors;
+		return;
+	}
+
+	/*TArray<AActor*> ActorsToCheck = Actors;
+	int32 NumTargetsFound = 0;
+
+	while (NumTargetsFound < MaxTargets)
+	{
+		if (ActorsToCheck.Num() == 0) break;
+		double ClosestDistance = TNumericLimits<double>::Max();
+		AActor* ClosestActor;
+		for (AActor* PotentialTarget : ActorsToCheck)
+		{
+			const double Distance = (PotentialTarget->GetActorLocation() - Origin).Length();
+			if (Distance < ClosestDistance)
+			{
+				ClosestDistance = Distance;
+				ClosestActor = PotentialTarget;
+			}
+		}
+		ActorsToCheck.Remove(ClosestActor);
+		OutClosestTargets.AddUnique(ClosestActor);
+		++NumTargetsFound;
+	}*/
+
+	TArray<AActor*> ActorsToCheck = Actors;
+
+	std::sort(ActorsToCheck.GetData(), ActorsToCheck.GetData() + ActorsToCheck.Num(), [&Origin](const AActor* A1, const AActor* A2) {
+		const auto A1Length = (A1->GetActorLocation() - Origin).Length();
+		const auto A2Length = (A2->GetActorLocation() - Origin).Length();
+		return A1Length < A2Length;
+	});
+	TArray<AActor*> ActorsToCheck1 = ActorsToCheck;
+
+
+	//std::copy(ActorsToCheck.GetData(), ActorsToCheck.GetData() + MaxTargets, OutClosestTargets.GetData());
+	int idx = 0;
+	while (idx < MaxTargets) {
+		OutClosestTargets.AddUnique(ActorsToCheck[idx++]);
+	}
+	
+}
+
 bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondActor)
 {
 	const bool bBothArePlayers = FirstActor->ActorHasTag(FName("Player")) && SecondActor->ActorHasTag(FName("Player"));

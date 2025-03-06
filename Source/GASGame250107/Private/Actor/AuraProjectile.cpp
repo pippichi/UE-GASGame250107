@@ -43,6 +43,10 @@ void AAuraProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	SetLifeSpan(LifeSpan);
+
+	SetReplicates(true);
+	SetReplicateMovement(true); // 炮弹的移动需要网络复制
+
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlap);
 
 	LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound, GetRootComponent());
@@ -79,6 +83,7 @@ void AAuraProjectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	//	DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor) {
 	//	return;
 	//}
+	if (DamageEffectParams.SourceAbilitySystemComponent == nullptr) return;
 	AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
 	if (SourceAvatarActor == OtherActor) return;
 

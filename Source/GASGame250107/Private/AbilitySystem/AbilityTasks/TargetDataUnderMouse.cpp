@@ -4,6 +4,7 @@
 #include "AbilitySystem/AbilityTasks/TargetDataUnderMouse.h"
 
 #include "AbilitySystemComponent.h"
+#include "GASGame250107\GASGame250107.h"
 
 
 UTargetDataUnderMouse* UTargetDataUnderMouse::CreateTargetDataUnderMouse(UGameplayAbility* OwningAbility)
@@ -50,7 +51,7 @@ void UTargetDataUnderMouse::SendMouseCursorData()
 	APlayerController* PC = Ability->GetCurrentActorInfo()->PlayerController.Get();
 	FHitResult HitResult;
 	// PC->GetHitResultUnderFinger()
-	PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+	PC->GetHitResultUnderCursor(ECC_Target, false, HitResult);
 	// ValidData.Broadcast(HitResult.Location);
 
 	FGameplayAbilityTargetDataHandle DataHandle;

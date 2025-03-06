@@ -13,6 +13,8 @@
 #include "UI/HUD/AuraHUD.h"
 #include "AbilitySystem\Data\LevelUpInfo.h"
 #include "NiagaraComponent.h"
+#include "AuraGameplayTags.h"
+#include "AbilitySystem\Debuff\DebuffNiagaraComponent.h"
 
 AAuraCharacter::AAuraCharacter()
 {
@@ -163,6 +165,43 @@ int32 AAuraCharacter::GetSpellPoints_Implementation() const
 	return AuraPlayerState->GetSpellPoints();
 }
 
+void AAuraCharacter::OnRep_Stunned()
+{
+	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComp))
+	{
+		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+		FGameplayTagContainer BlockedTags;
+		BlockedTags.AddTag(GameplayTags.Player_Block_CursorTrace);
+		BlockedTags.AddTag(GameplayTags.Player_Block_InputHeld);
+		BlockedTags.AddTag(GameplayTags.Player_Block_InputPressed);
+		BlockedTags.AddTag(GameplayTags.Player_Block_InputReleased);
+		if (bIsStunned)
+		{
+			//AuraASC->AddReplicatedLooseGameplayTags(BlockedTags); // 不使用网络复制版本的，因为在这个场景中我们仅复制了一个bIsStunned就达到了同样的效果，可以算是一种优化
+			AuraASC->AddLooseGameplayTags(BlockedTags);
+			StunDebuffComponent->Activate();
+		}
+		else
+		{
+			//AuraASC->RemoveReplicatedLooseGameplayTags(BlockedTags); // 不使用网络复制版本的，因为在这个场景中我们仅复制了一个bIsStunned就达到了同样的效果，可以算是一种优化
+			AuraASC->RemoveLooseGameplayTags(BlockedTags);
+			StunDebuffComponent->Deactivate();
+		}
+	}
+}
+
+void AAuraCharacter::OnRep_Burned()
+{
+	if (bIsBurned)
+	{
+		BurnDebuffComponent->Activate();
+	}
+	else
+	{
+		BurnDebuffComponent->Deactivate();
+	}
+}
+
 void AAuraCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -177,6 +216,8 @@ void AAuraCharacter::InitAbilityActorInfo()
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComp)->AbilityActorInfoSet();
 	AttributeSet = AuraPlayerState->GetAttributeSet();
 	OnAscRegistered.Broadcast(AbilitySystemComp);
+	AbilitySystemComp->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Debuff_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AAuraCharacter::StunTagChanged);
+
 
 	/**
 	 * 之所以要下面的if判断是因为多人模式下，SIMULATED角色获取不到
