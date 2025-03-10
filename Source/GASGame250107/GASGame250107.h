@@ -8,6 +8,7 @@
 // ECC_GameTraceChannel1代指自定义的第一个Channel（这里是Projectile），如果有自定义的第二个Channel就叫ECC_GameTraceChannel2
 #define ECC_Projectile ECollisionChannel::ECC_GameTraceChannel1
 #define ECC_Target ECollisionChannel::ECC_GameTraceChannel2
+#define ECC_ExcludePlayers ECollisionChannel::ECC_GameTraceChannel3
 
 static void LogOnScreen(UObject* WorldContext, FString Msg, FColor Color = FColor::White, float Duration = 5.0f) {
 	if (!ensure(WorldContext)) {

@@ -12,12 +12,13 @@
 #include "Net\UnrealNetwork.h"
 #include "AbilitySystem\Debuff\DebuffNiagaraComponent.h"
 #include "GameFramework\CharacterMovementComponent.h"
+#include "AbilitySystem\Passive\PassiveNiagaraComponent.h"
 
 // Sets default values
 AAuraCharacterBase::AAuraCharacterBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 	BurnDebuffComponent = CreateDefaultSubobject<UDebuffNiagaraComponent>("BurnDebuffComponent");
@@ -38,6 +39,28 @@ AAuraCharacterBase::AAuraCharacterBase()
 	Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	EffectAttachComponent = CreateDefaultSubobject<USceneComponent>("EffectAttachPoint");
+	EffectAttachComponent->SetupAttachment(GetRootComponent());
+	HaloOfProtectionNiagaraComponent = CreateDefaultSubobject<UPassiveNiagaraComponent>("HaloOfProtectionComponent");
+	HaloOfProtectionNiagaraComponent->SetupAttachment(EffectAttachComponent);
+	LifeSiphonNiagaraComponent = CreateDefaultSubobject<UPassiveNiagaraComponent>("LifeSiphonNiagaraComponent");
+	LifeSiphonNiagaraComponent->SetupAttachment(EffectAttachComponent);
+	ManaSiphonNiagaraComponent = CreateDefaultSubobject<UPassiveNiagaraComponent>("ManaSiphonNiagaraComponent");
+	ManaSiphonNiagaraComponent->SetupAttachment(EffectAttachComponent);
+}
+
+void AAuraCharacterBase::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	EffectAttachComponent->SetWorldRotation(FRotator::ZeroRotator);
+}
+
+float AAuraCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	const float DamageTaken = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	OnDamageDelegate.Broadcast(DamageTaken);
+	return DamageTaken;
 }
 
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
@@ -60,7 +83,10 @@ FOnDeathSignature& AAuraCharacterBase::GetOnDeathDelegate()
 {
 	return OnDeathDelegate;
 }
-
+FOnDamageSignature& AAuraCharacterBase::GetOnDamageSignature()
+{
+	return OnDamageDelegate;
+}
 void AAuraCharacterBase::MulticastHandleDeath_Implementation(const FVector& DeathImpulse)
 {
 	UGameplayStatics::PlaySoundAtLocation(this, DeadSound, GetActorLocation(), GetActorRotation());

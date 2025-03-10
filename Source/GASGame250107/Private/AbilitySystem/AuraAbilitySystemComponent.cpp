@@ -95,16 +95,51 @@ void UAuraAbilitySystemComponent::ServerEquipAbility_Implementation(const FGamep
 		const bool bStatusValid = Status == GameplayTags.Abilities_Status_Equipped || Status == GameplayTags.Abilities_Status_Unlocked;
 		if (bStatusValid)
 		{
-			// Remove his InputTag (slot) from any Ability that has it.
-			ClearAbilitiesOfSlot(Slot);
-			// Clear this ability's slot, just in case, it's a different slot
-			ClearSlot(AbilitySpec);
-			// Now, assign this ability to this slot
-			AbilitySpec->GetDynamicSpecSourceTags().AddTag(Slot);
-			if (Status.MatchesTagExact(GameplayTags.Abilities_Status_Unlocked)) {
-				AbilitySpec->GetDynamicSpecSourceTags().RemoveTag(GameplayTags.Abilities_Status_Unlocked);
+			//// Remove his InputTag (slot) from any Ability that has it.
+			//ClearAbilitiesOfSlot(Slot);
+			//// Clear this ability's slot, just in case, it's a different slot
+			//ClearSlot(AbilitySpec);
+			//// Now, assign this ability to this slot
+			//AbilitySpec->GetDynamicSpecSourceTags().AddTag(Slot);
+			//if (Status.MatchesTagExact(GameplayTags.Abilities_Status_Unlocked)) {
+			//	AbilitySpec->GetDynamicSpecSourceTags().RemoveTag(GameplayTags.Abilities_Status_Unlocked);
+			//	AbilitySpec->GetDynamicSpecSourceTags().AddTag(GameplayTags.Abilities_Status_Equipped);
+			//}
+			
+			// Handle activation/deactivation for passive abilities
+			if (!SlotIsEmpty(Slot)) // There is an ability in this slot already. Deactivate and clear its slot.
+			{
+				FGameplayAbilitySpec* SpecWithSlot = GetSpecWithSlot(Slot);
+				if (SpecWithSlot)
+				{
+					// is that ability the same as this ability? If so, we can return early.
+					if (AbilityTag.MatchesTagExact(GetAbilityTagFromSpec(*SpecWithSlot)))
+					{
+						ClientEquipAbility(AbilityTag, GameplayTags.Abilities_Status_Equipped, Slot, PrevSlot);
+						return;
+					}
+
+					if (IsPassiveAbility(*SpecWithSlot))
+					{
+						MulticastActivatePassiveEffect(GetAbilityTagFromSpec(*SpecWithSlot), false);
+						DeactivatePassiveAbility.Broadcast(GetAbilityTagFromSpec(*SpecWithSlot));
+					}
+
+					ClearSlot(SpecWithSlot);
+				}
+			}
+
+			if (!AbilityHasAnySlot(*AbilitySpec)) // Ability doesn't yet have a slot (it's not active)
+			{
+				if (IsPassiveAbility(*AbilitySpec))
+				{
+					TryActivateAbility(AbilitySpec->Handle);
+					MulticastActivatePassiveEffect(AbilityTag, true);
+				}
+				AbilitySpec->GetDynamicSpecSourceTags().RemoveTag(GetStatusFromSpec(*AbilitySpec));
 				AbilitySpec->GetDynamicSpecSourceTags().AddTag(GameplayTags.Abilities_Status_Equipped);
 			}
+			AssignSlotToAbility(*AbilitySpec, Slot);
 			MarkAbilitySpecDirty(*AbilitySpec);
 		}
 		ClientEquipAbility(AbilityTag, GameplayTags.Abilities_Status_Equipped, Slot, PrevSlot);
@@ -126,7 +161,7 @@ bool UAuraAbilitySystemComponent::GetDescriptionsByAbilityTag(const FGameplayTag
 		}
 	}
 	const UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
-	if (!AbilityTag.IsValid() || AbilityTag.MatchesTagExact(FAuraGameplayTags::Get().Abilities_None)) {
+	if (!AbilityTag.IsValid() || AbilityTag.MatchesTagExact(FAuraGameplayTags::Get().Abilities_None) || AbilityInfo == nullptr) {
 		OutDescription = FString();
 	}
 	else {
@@ -183,20 +218,22 @@ void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 {
 	if (InputTag.IsValid())
 	{
+		FScopedAbilityListLock ActiveScopeLock(*this);
 		for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 		{
 			if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
 			{
 				AbilitySpecInputPressed(AbilitySpec);
-				//UGameplayAbility* GameplayAbility = AbilitySpec.GetPrimaryInstance();
-				//if (GameplayAbility)
-				//{
-				//	// UE5.5以前可以这么写：
-				//	// InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
-				//	// 经过自己实验测试发现新版本需要这样写：
-				//  // 并且使用WaitInputRelease或WaitInputPress函数的GA的Instancing Policy必须是Instanced Per Actor
-				//	InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, GameplayAbility->GetCurrentActivationInfo().GetActivationPredictionKey());
-				//}
+				UGameplayAbility* GameplayAbility = AbilitySpec.GetPrimaryInstance();
+				if (GameplayAbility)
+				{
+					// UE5.5以前可以这么写：
+					// InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+					// 经过自己实验测试发现新版本需要这样写：
+				    // 并且使用WaitInputRelease或WaitInputPress函数的GA的Instancing Policy必须是Instanced Per Actor
+					// 这里的调用非常巧妙，第一次调用时GA还未Activate，恰好也不需要触发（如果触发了就跟没有回调没什么区别了所以这样也是合理的），第二次调用时GA已被激活，此时会触发WaitInputPress回调去做后续的事情
+					InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, GameplayAbility->GetCurrentActivationInfo().GetActivationPredictionKey());
+				}
 			}
 		}
 	}
@@ -206,6 +243,7 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 {
 	if (InputTag.IsValid())
 	{
+		FScopedAbilityListLock ActiveScopeLock(*this);
 		for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 		{
 			if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
@@ -214,15 +252,15 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 				if (!AbilitySpec.IsActive())
 				{
 					TryActivateAbility(AbilitySpec.Handle);
-					UGameplayAbility* GameplayAbility = AbilitySpec.GetPrimaryInstance();
-					if (GameplayAbility)
-					{
-						// UE5.5以前可以这么写：
-						// InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
-						// 经过自己实验测试发现新版本需要这样写：
-						// 并且使用WaitInputRelease或WaitInputPress函数的GA的Instancing Policy必须是Instanced Per Actor
-						InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, GameplayAbility->GetCurrentActivationInfo().GetActivationPredictionKey());
-					}
+					//UGameplayAbility* GameplayAbility = AbilitySpec.GetPrimaryInstance();
+					//if (GameplayAbility)
+					//{
+					//	// UE5.5以前可以这么写：
+					//	// InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+					//	// 经过自己实验测试发现新版本需要这样写：
+					//	// 并且使用WaitInputRelease或WaitInputPress函数的GA的Instancing Policy必须是Instanced Per Actor
+					//	InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, GameplayAbility->GetCurrentActivationInfo().GetActivationPredictionKey());
+					//}
 				}
 			}
 		}
@@ -233,6 +271,7 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 {
 	if (InputTag.IsValid())
 	{
+		FScopedAbilityListLock ActiveScopeLock(*this);
 		for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 		{
 			if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag) && AbilitySpec.IsActive())
@@ -312,13 +351,69 @@ FGameplayTag UAuraAbilitySystemComponent::GetStatusFromAbilityTag(const FGamepla
 	return FGameplayTag();
 }
 
-FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromAbilityTag(const FGameplayTag& AbilityTag)
+FGameplayTag UAuraAbilitySystemComponent::GetSlotFromAbilityTag(const FGameplayTag& AbilityTag)
 {
 	if (const FGameplayAbilitySpec* Spec = GetSpecFromAbilityTag(AbilityTag))
 	{
 		return GetInputTagFromSpec(*Spec);
 	}
 	return FGameplayTag();
+}
+
+bool UAuraAbilitySystemComponent::SlotIsEmpty(const FGameplayTag& Slot)
+{
+	FScopedAbilityListLock ActiveScopeLoc(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilityHasSlot(AbilitySpec, Slot))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool UAuraAbilitySystemComponent::AbilityHasSlot(const FGameplayAbilitySpec& Spec, const FGameplayTag& Slot)
+{
+	return Spec.GetDynamicSpecSourceTags().HasTagExact(Slot);
+}
+
+bool UAuraAbilitySystemComponent::AbilityHasAnySlot(const FGameplayAbilitySpec& Spec)
+{
+	return Spec.GetDynamicSpecSourceTags().HasTag(FGameplayTag::RequestGameplayTag(FName("InputTag")));
+}
+
+FGameplayAbilitySpec* UAuraAbilitySystemComponent::GetSpecWithSlot(const FGameplayTag& Slot)
+{
+	FScopedAbilityListLock ActiveScopeLock(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(Slot))
+		{
+			return &AbilitySpec;
+		}
+	}
+	return nullptr;
+}
+
+bool UAuraAbilitySystemComponent::IsPassiveAbility(const FGameplayAbilitySpec& Spec) const
+{
+	const UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
+	const FGameplayTag AbilityTag = GetAbilityTagFromSpec(Spec);
+	const FAuraAbilityInfo& Info = AbilityInfo->FindAbilityInfoForTag(AbilityTag);
+	const FGameplayTag AbilityType = Info.AbilityType;
+	return AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Passive);
+}
+
+void UAuraAbilitySystemComponent::AssignSlotToAbility(FGameplayAbilitySpec& Spec, const FGameplayTag& Slot)
+{
+	ClearSlot(&Spec);
+	Spec.GetDynamicSpecSourceTags().AddTag(Slot);
+}
+
+void UAuraAbilitySystemComponent::MulticastActivatePassiveEffect_Implementation(const FGameplayTag& AbilityTag, bool bActivate)
+{
+	ActivatePassiveEffect.Broadcast(AbilityTag, bActivate);
 }
 
 FGameplayAbilitySpec* UAuraAbilitySystemComponent::GetSpecFromAbilityTag(const FGameplayTag& Slot)

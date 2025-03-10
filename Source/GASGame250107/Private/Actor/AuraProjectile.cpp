@@ -79,19 +79,8 @@ void AAuraProjectile::Destroyed()
 void AAuraProjectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//if (!DamageEffectSpecHandle.IsValid() || !DamageEffectSpecHandle.Data.IsValid() || // 服务器才执行UAuraProjectileSpell::SpawnProjectile方法，所以Client端需要DamageEffectSpecHandle.IsValid()以及DamageEffectSpecHandle.Data.IsValid()（TODO: 教程中只写了DamageEffectSpecHandle.Data.IsValid()）
-	//	DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor) {
-	//	return;
-	//}
-	if (DamageEffectParams.SourceAbilitySystemComponent == nullptr) return;
-	AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
-	if (SourceAvatarActor == OtherActor) return;
-
-	//if (!UAuraAbilitySystemLibrary::IsNotFriend(DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser(), OtherActor)) {
-	//	return;
-	//}
-	if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor, OtherActor)) return;
-
+	if (!IsValidOverlap(OtherActor)) return;
+	
 	// Client端不检测Simulated角色
 	if (GetLocalRole() == ENetRole::ROLE_SimulatedProxy) {
 		return;
@@ -138,4 +127,20 @@ void AAuraProjectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	}
 }
 
+bool AAuraProjectile::IsValidOverlap(AActor* OtherActor)
+{
+	//if (!DamageEffectSpecHandle.IsValid() || !DamageEffectSpecHandle.Data.IsValid() || // 服务器才执行UAuraProjectileSpell::SpawnProjectile方法，所以Client端需要DamageEffectSpecHandle.IsValid()以及DamageEffectSpecHandle.Data.IsValid()（TODO: 教程中只写了DamageEffectSpecHandle.Data.IsValid()）
+	//	DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor) {
+	//	return;
+	//}
+	if (DamageEffectParams.SourceAbilitySystemComponent == nullptr) return false;
+	AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
+	if (SourceAvatarActor == OtherActor) return false;
 
+	//if (!UAuraAbilitySystemLibrary::IsNotFriend(DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser(), OtherActor)) {
+	//	return;
+	//}
+	if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor, OtherActor)) return false;
+
+	return true;
+}

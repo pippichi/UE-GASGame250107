@@ -41,17 +41,25 @@ public:
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 
-	void ForEachAbility(const FForEachAbility& Delegate); // µ¥Î¯ÅÉ°æ±¾
-	void ForEachAbility1(std::function<bool(const FGameplayAbilitySpec&)> Delegate); // c++11Ô­Éúº¯ÊýÖ¸Õë°æ±¾
+	void ForEachAbility(const FForEachAbility& Delegate); // ï¿½ï¿½Î¯ï¿½É°æ±¾
+	void ForEachAbility1(std::function<bool(const FGameplayAbilitySpec&)> Delegate); // c++11Ô­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½æ±¾
 
 	static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	static FGameplayTag GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	FGameplayTag GetStatusFromAbilityTag(const FGameplayTag& AbilityTag);
-	FGameplayTag GetInputTagFromAbilityTag(const FGameplayTag& AbilityTag);
+	FGameplayTag GetSlotFromAbilityTag(const FGameplayTag& AbilityTag);	
+	bool SlotIsEmpty(const FGameplayTag& Slot);
+	static bool AbilityHasSlot(const FGameplayAbilitySpec& Spec, const FGameplayTag& Slot);
+	static bool AbilityHasAnySlot(const FGameplayAbilitySpec& Spec);
+	FGameplayAbilitySpec* GetSpecWithSlot(const FGameplayTag& Slot);
+	bool IsPassiveAbility(const FGameplayAbilitySpec& Spec) const;
+	static void AssignSlotToAbility(FGameplayAbilitySpec& Spec, const FGameplayTag& Slot);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastActivatePassiveEffect(const FGameplayTag& AbilityTag, bool bActivate);
 
 	FGameplayAbilitySpec* GetSpecFromAbilityTag(const FGameplayTag& Slot);
-
 
 	void UpgradeAttribute(const FGameplayTag& AttributeTag);
 
@@ -71,12 +79,12 @@ public:
 
 	bool GetDescriptionsByAbilityTag(const FGameplayTag& AbilityTag, FString& OutDescription, FString& OutNextLevelDescription);
 
-	static void ClearSlot(FGameplayAbilitySpec* Spec); // Çå³ýGA±¾ÉíµÄSlot
-	void ClearAbilitiesOfSlot(const FGameplayTag& Slot); // Çå³ýÆäËûÕ¼ÓÐ¸ÃSlotµÄGA
+	static void ClearSlot(FGameplayAbilitySpec* Spec); // ï¿½ï¿½ï¿½GAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Slot
+	void ClearAbilitiesOfSlot(const FGameplayTag& Slot); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Ð¸ï¿½Slotï¿½ï¿½GA
 	static bool AbilityHasSlot(FGameplayAbilitySpec* Spec, const FGameplayTag& Slot);
 protected:
 
-	virtual void OnRep_ActivateAbilities() override; // ·¢ÉúÔÚAbilitySpecÍøÂç¸´ÖÆµÄÊ±ºò
+	virtual void OnRep_ActivateAbilities() override; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½AbilitySpecï¿½ï¿½ï¿½ç¸´ï¿½Æµï¿½Ê±ï¿½ï¿½
 
 	UFUNCTION(Client, Reliable)
 	void ClientEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveGameplayEffectHandle);

@@ -23,7 +23,14 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	FDamageEffectParams MakeDamageEffectParamsFromClassDefaults(
-		AActor* TargetActor = nullptr) const;
+		AActor* TargetActor = nullptr,
+		FVector InRadialDamageOrigin = FVector::ZeroVector,
+		bool bOverrideKnockbackDirection = false,
+		FVector KnockbackDirectionOverride = FVector::ZeroVector,
+		bool bOverrideDeathImpulse = false,
+		FVector DeathImpulseDirectionOverride = FVector::ZeroVector,
+		bool bOverridePitch = false,
+		float PitchOverride = 0.f) const;
 
 	UFUNCTION(BlueprintPure)
 	float GetDamageAtLevel() const;

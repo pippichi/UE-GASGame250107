@@ -115,6 +115,49 @@ int32 UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(const UObject* Worl
 	return 0;
 }
 
+void UAuraAbilitySystemLibrary::SetIsRadialDamageEffectParam(FDamageEffectParams& DamageEffectParams, bool bIsRadial,
+	float InnerRadius, float OuterRadius, FVector Origin)
+{
+	DamageEffectParams.bIsRadialDamage = bIsRadial;
+	DamageEffectParams.RadialDamageInnerRadius = InnerRadius;
+	DamageEffectParams.RadialDamageOuterRadius = OuterRadius;
+	DamageEffectParams.RadialDamageOrigin = Origin;
+}
+
+void UAuraAbilitySystemLibrary::SetKnockbackDirection(FDamageEffectParams& DamageEffectParams,
+	FVector KnockbackDirection, float Magnitude)
+{
+	KnockbackDirection.Normalize();
+	if (Magnitude == 0.f)
+	{
+		DamageEffectParams.KnockbackForce = KnockbackDirection * DamageEffectParams.KnockbackForceMagnitude;
+	}
+	else
+	{
+		DamageEffectParams.KnockbackForce = KnockbackDirection * Magnitude;
+	}
+}
+
+void UAuraAbilitySystemLibrary::SetDeathImpulseDirection(FDamageEffectParams& DamageEffectParams,
+	FVector ImpulseDirection, float Magnitude)
+{
+	ImpulseDirection.Normalize();
+	if (Magnitude == 0.f)
+	{
+		DamageEffectParams.DeathImpulse = ImpulseDirection * DamageEffectParams.DeathImpulseMagnitude;
+	}
+	else
+	{
+		DamageEffectParams.DeathImpulse = ImpulseDirection * Magnitude;
+	}
+}
+
+void UAuraAbilitySystemLibrary::SetTargetEffectParamsASC(FDamageEffectParams& DamageEffectParams,
+	UAbilitySystemComponent* InASC)
+{
+	DamageEffectParams.TargetAbilitySystemComponent = InASC;
+}
+
 UCharacterClassInfo* UAuraAbilitySystemLibrary::GetCharacterClassInfo(const UObject* WorldContextObj)
 {
 	if (const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObj))) {
@@ -443,6 +486,12 @@ FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const 
 	EffectContextHandle.AddSourceObject(SourceAvatarActor);
 	SetDeathImpulse(EffectContextHandle, DamageEffectParams.DeathImpulse);
 	SetKnockbackForce(EffectContextHandle, DamageEffectParams.KnockbackForce);
+	
+	SetIsRadialDamage(EffectContextHandle, DamageEffectParams.bIsRadialDamage);
+	SetRadialDamageInnerRadius(EffectContextHandle, DamageEffectParams.RadialDamageInnerRadius);
+	SetRadialDamageOuterRadius(EffectContextHandle, DamageEffectParams.RadialDamageOuterRadius);
+	SetRadialDamageOrigin(EffectContextHandle, DamageEffectParams.RadialDamageOrigin);
+	
 	FGameplayEffectSpecHandle SpecHandle = DamageEffectParams.SourceAbilitySystemComponent->MakeOutgoingSpec(DamageEffectParams.DamageGameplayEffectClass, DamageEffectParams.AbilityLevel, EffectContextHandle);
 	
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageEffectParams.DamageType, DamageEffectParams.BaseDamage);
@@ -497,7 +546,7 @@ TArray<FVector> UAuraAbilitySystemLibrary::EvenlyRotatedVectors(const FVector& F
 	return Vectors;
 }
 //
-//// Ð´·¨Ò»£º
+//// Ð´ï¿½ï¿½Ò»ï¿½ï¿½
 //template<typename RotatorOrVector>
 //TArray<RotatorOrVector> UAuraAbilitySystemLibrary::TEvenlyDirectors(const FVector& Forward, const FVector& Axis, float Spread, int32 NumDirectors)
 //{
@@ -529,7 +578,7 @@ TArray<FVector> UAuraAbilitySystemLibrary::EvenlyRotatedVectors(const FVector& F
 //	return RotatorOrVectors;
 //}
 
-//// ÌØ»¯°æÐ´·¨¶þ£º
+//// ï¿½Ø»ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //template<>
 //TArray<FVector> UAuraAbilitySystemLibrary::TEvenlyDirectors<FVector>(const FVector& Forward, const FVector& Axis, float Spread, int32 NumVectors)
 //{
@@ -552,7 +601,7 @@ TArray<FVector> UAuraAbilitySystemLibrary::EvenlyRotatedVectors(const FVector& F
 //	return Vectors;
 //}
 //
-//// ÌØ»¯°æÐ´·¨¶þ£º
+//// ï¿½Ø»ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //template<>
 //TArray<FRotator> UAuraAbilitySystemLibrary::TEvenlyDirectors<FRotator>(const FVector& Forward, const FVector& Axis, float Spread, int32 NumRotators)
 //{
