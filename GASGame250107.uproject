@@ -16,7 +16,8 @@
 				"EnhancedInput",
 				"AIModule",
 				"Niagara",
-				"GameplayTasks"
+				"GameplayTasks",
+				"ModelViewViewModel"
 			]
 		}
 	],
@@ -38,6 +39,10 @@
 		},
 		{
 			"Name": "MotionWarping",
+			"Enabled": true
+		},
+		{
+			"Name": "ModelViewViewModel",
 			"Enabled": true
 		}
 	]

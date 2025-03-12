@@ -459,8 +459,6 @@ void UAuraAbilitySystemLibrary::GetClosestTargets(int32 MaxTargets, const TArray
 		const auto A2Length = (A2->GetActorLocation() - Origin).Length();
 		return A1Length < A2Length;
 	});
-	TArray<AActor*> ActorsToCheck1 = ActorsToCheck;
-
 
 	//std::copy(ActorsToCheck.GetData(), ActorsToCheck.GetData() + MaxTargets, OutClosestTargets.GetData());
 	int idx = 0;
