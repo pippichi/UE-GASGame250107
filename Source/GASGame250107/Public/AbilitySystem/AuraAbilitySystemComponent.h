@@ -7,6 +7,7 @@
 #include <functional>
 #include "AuraAbilitySystemComponent.generated.h"
 
+class ULoadScreenSaveGame;
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
@@ -33,6 +34,7 @@ public:
 	FDeactivatePassiveAbility DeactivatePassiveAbility;
 	FActivatePassiveEffect ActivatePassiveEffect;
 
+	void AddCharacterAbilitiesFromSaveData(ULoadScreenSaveGame* SaveData);
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& Abilities);
 	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& PassiveAbilities);
 	bool bStartupAbilitiesGiven = false;
@@ -41,8 +43,8 @@ public:
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 
-	void ForEachAbility(const FForEachAbility& Delegate); // ï¿½ï¿½Î¯ï¿½É°æ±¾
-	void ForEachAbility1(std::function<bool(const FGameplayAbilitySpec&)> Delegate); // c++11Ô­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½æ±¾
+	void ForEachAbility(const FForEachAbility& Delegate); // µ¥Î¯ÅÉ°æ±¾
+	void ForEachAbility1(std::function<bool(const FGameplayAbilitySpec&)> Delegate); // c++11Ô­Éúº¯ÊýÖ¸Õë°æ±¾
 
 	static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
@@ -79,12 +81,12 @@ public:
 
 	bool GetDescriptionsByAbilityTag(const FGameplayTag& AbilityTag, FString& OutDescription, FString& OutNextLevelDescription);
 
-	static void ClearSlot(FGameplayAbilitySpec* Spec); // ï¿½ï¿½ï¿½GAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Slot
-	void ClearAbilitiesOfSlot(const FGameplayTag& Slot); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Ð¸ï¿½Slotï¿½ï¿½GA
+	static void ClearSlot(FGameplayAbilitySpec* Spec); // Çå³ýGA±¾ÉíµÄSlot
+	void ClearAbilitiesOfSlot(const FGameplayTag& Slot); // Çå³ýÆäËûÕ¼ÓÐ¸ÃSlotµÄGA
 	static bool AbilityHasSlot(FGameplayAbilitySpec* Spec, const FGameplayTag& Slot);
 protected:
 
-	virtual void OnRep_ActivateAbilities() override; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½AbilitySpecï¿½ï¿½ï¿½ç¸´ï¿½Æµï¿½Ê±ï¿½ï¿½
+	virtual void OnRep_ActivateAbilities() override; // ·¢ÉúÔÚAbilitySpecÍøÂç¸´ÖÆµÄÊ±ºò
 
 	UFUNCTION(Client, Reliable)
 	void ClientEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveGameplayEffectHandle);

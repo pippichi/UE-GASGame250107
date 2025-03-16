@@ -28,10 +28,16 @@ public:
 	void InitializeSlot();
 	
 	UPROPERTY()
+	int32 SlotIndex;
+	
+	UPROPERTY()
 	TEnumAsByte<ESaveSlotStatus> SlotStatus;
 
 	UPROPERTY()
-	int32 SlotIndex;
+	FName PlayerStartTag;
+
+	UPROPERTY()
+	FString MapAssetName;
 
 	/** Field Notifies */
 	

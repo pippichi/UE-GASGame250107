@@ -6,17 +6,24 @@
 #include "GameFramework/PlayerController.h"
 #include "AuraPlayerController.generated.h"
 
+class IHighlightInterface;
 class USplineComponent;
 class UAuraAbilitySystemComponent;
 struct FGameplayTag;
 class UAuraInputConfig;
-class IEnemyInterface;
 class UInputAction;
 struct FInputActionValue;
 class UInputMappingContext;
 class UDamageTextComponent;
 class UNiagaraSystem;
 class AMagicCircle;
+
+enum class ETargetingStatus : uint8
+{
+	TargetingEnemy,
+	TargetingNonEnemy,
+	NotTargeting
+};
 
 /**
  * 
@@ -63,8 +70,12 @@ private:
 
 	void CursorTrace();
 	// 这里用TObjectPtr会报错，因为TObjectPtr只支持UObject类型的
-	IEnemyInterface *LastActor, *ThisActor;
+	// IHighlightInterface *LastActor, *ThisActor;
+	TObjectPtr<AActor> LastActor;
+	TObjectPtr<AActor> ThisActor;
 	FHitResult CursorHit;
+	static void HighlightActor(AActor* InActor);
+	static void UnHighlightActor(AActor* InActor);
 
 	void AbilityInputTagPressed(FGameplayTag InputTag);
 	void AbilityInputTagReleased(FGameplayTag InputTag);
@@ -82,8 +93,8 @@ private:
 	float FollowTime = 0.f;
 	float ShortPressThreshold = 0.5f;
 	bool bAutoRunning = false;
-
-	bool bTargeting = false;
+	// bool bTargeting = false;
+	ETargetingStatus TargetingStatus = ETargetingStatus::NotTargeting;
 
 	UPROPERTY(EditDefaultsOnly)
 	float AutoRunAcceptanceRadius = 50.f;
